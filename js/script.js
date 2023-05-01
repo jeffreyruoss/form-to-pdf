@@ -24,6 +24,7 @@ async function fetchImageAsBase64(url) {
 }
 
 async function generatePDF(name, email, backgroundImage) {
+  const { jsPDF } = window.jspdf;
   const dpi = 72;
 
   // Load the background image
@@ -36,7 +37,6 @@ async function generatePDF(name, email, backgroundImage) {
   const heightInInches = img.height / dpi;
 
   // Create the PDF with the correct dimensions
-  const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'in',
@@ -47,11 +47,26 @@ async function generatePDF(name, email, backgroundImage) {
   doc.addImage(backgroundImage, 'PNG', 0, 0, widthInInches, heightInInches);
 
   // Add the text
-  doc.setFontSize(16);
-  doc.text(`Name: ${name}`, 10 / 72, 20 / 72); // Convert pt to inches
-  doc.text(`Email: ${email}`, 10 / 72, 30 / 72); // Convert pt to inches
+  const fontSize = 16;
+  doc.setFontSize(fontSize);
+
+  const nameText = `Name: ${name}`;
+  const emailText = `Email: ${email}`;
+
+  const nameTextWidth = doc.getTextWidth(nameText);
+  const emailTextWidth = doc.getTextWidth(emailText);
+
+  const nameX = (widthInInches - nameTextWidth) / 2;
+  const emailX = (widthInInches - emailTextWidth) / 2;
+
+  const nameY = 725 / dpi;
+  const emailY = nameY + fontSize / 72;
+
+  doc.text(nameText, nameX, nameY); // Convert pt to inches
+  doc.text(emailText, emailX, emailY); // Convert pt to inches
 
   // Save the PDF
   doc.save('generated.pdf');
 }
+
 
