@@ -1,7 +1,13 @@
-// Event listeners
+const CONFIG = {
+  margin: 1, // inches
+  orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
+  backgroundImagePath: 'img/background.png',
+}
+
+const jsPDF = window.jspdf.jsPDF;
+
 document.getElementById('pdf-form').addEventListener('submit', onFormSubmit);
 
-// Event handler functions
 async function onFormSubmit(e) {
   e.preventDefault();
 
@@ -9,14 +15,15 @@ async function onFormSubmit(e) {
   const email = getValueById('email');
 
   try {
-    const backgroundImage = await fetchImageAsBase64('img/background.png');
-    generatePDF(name, email, backgroundImage);
+    const img = await loadImage(CONFIG.backgroundImagePath);
+    const backgroundImage = await fetchImageAsBase64(CONFIG.backgroundImagePath);
+    const dimensions = calculateDimensions(img, 72);
+    generatePDF(name, email, backgroundImage, dimensions, img);
   } catch (error) {
     console.error('Error:', error);
   }
 }
 
-// Utility functions
 function getValueById(id) {
   return document.getElementById(id).value;
 }
@@ -33,21 +40,11 @@ async function fetchImageAsBase64(url) {
 }
 
 // PDF generation functions
-async function generatePDF(name, email, backgroundImage) {
-  const { jsPDF } = window.jspdf;
-  const dpi = 72;
-
-  const img = await loadImage(backgroundImage);
-
-  const dimensions = calculateDimensions(img, dpi);
-
+async function generatePDF(name, email, backgroundImage, dimensions, img) {
   const doc = createPDF(dimensions);
-
-  addBackgroundImage(doc, backgroundImage, dimensions);
-
-  const fontSize = 16 * 4.16666667;
+  addBackgroundImage(doc, backgroundImage, dimensions, img);
+  const fontSize = 16;
   addText(doc, name, email, dimensions, fontSize);
-
   savePDF(doc);
 }
 
@@ -60,23 +57,41 @@ async function loadImage(src) {
 }
 
 function calculateDimensions(img, dpi) {
+  let width, height;
+
+  if (CONFIG.orientation === 'portrait') {
+    width = 8.5;
+    height = 11;
+  } else {
+    width = 11;
+    height = 8.5;
+  }
+
   return {
-    width: img.width / dpi,
-    height: img.height / dpi,
+    width: width,
+    height: height,
   };
 }
-
 function createPDF(dimensions) {
-  const jsPDF = window.jspdf.jsPDF;
   return new jsPDF({
-    orientation: 'landscape',
+    orientation: CONFIG.orientation,
     unit: 'in',
     format: [dimensions.width, dimensions.height],
   });
 }
 
-function addBackgroundImage(doc, backgroundImage, dimensions) {
-  doc.addImage(backgroundImage, 'PNG', 0, 0, dimensions.width, dimensions.height);
+function addBackgroundImage(doc, backgroundImage, dimensions, img) {
+  const scaleX = (dimensions.width - 2 * CONFIG.margin) / img.width;
+  const scaleY = (dimensions.height - 2 * CONFIG.margin) / img.height;
+  const scale = Math.min(scaleX, scaleY);
+
+  const scaledWidth = img.width * scale;
+  const scaledHeight = img.height * scale;
+
+  const backgroundX = (dimensions.width - scaledWidth) / 2;
+  const backgroundY = (dimensions.height - scaledHeight) / 2;
+
+  doc.addImage(backgroundImage, 'PNG', backgroundX, backgroundY, scaledWidth, scaledHeight);
 }
 
 function addText(doc, name, email, dimensions, fontSize) {
@@ -88,12 +103,15 @@ function addText(doc, name, email, dimensions, fontSize) {
   const nameX = calculateXPosition(doc, nameText, dimensions.width);
   const emailX = calculateXPosition(doc, emailText, dimensions.width);
 
-  const nameY = 725 / 72;
-  const emailY = nameY + fontSize / 72;
+  const centerY = dimensions.height / 2;
+
+  const nameY = centerY - fontSize / 72;
+  const emailY = centerY + fontSize / 72;
 
   doc.text(nameText, nameX, nameY);
   doc.text(emailText, emailX, emailY);
 }
+
 
 function calculateXPosition(doc, text, width) {
   return (width - doc.getTextWidth(text)) / 2;
