@@ -43,8 +43,9 @@ async function fetchImageAsBase64(url) {
 async function generatePDF(name, backgroundImage, dimensions, img) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
-  const fontSize = 16;
-  addText(doc, name, dimensions, fontSize);
+  const fontSize = 12;
+  const textColor = '#58595B';
+  addText(doc, name, dimensions, fontSize, textColor);
   savePDF(doc);
 }
 
@@ -94,13 +95,14 @@ function addBackgroundImage(doc, backgroundImage, dimensions, img) {
   doc.addImage(backgroundImage, 'PNG', backgroundX, backgroundY, scaledWidth, scaledHeight);
 }
 
-function addText(doc, name, dimensions, fontSize) {
+function addText(doc, name, dimensions, fontSize, textColor) {
   // Presented to
   const presentedToText = "Presented to";
-  const presentedToFontSize = fontSize * 0.7;
+  const presentedToFontSize = fontSize * 1.2;
   doc.setFontSize(presentedToFontSize);
+  doc.setTextColor(textColor);
   const presentedToX = calculateXPosition(doc, presentedToText, dimensions.width);
-  const presentedToY = dimensions.height / 2 - fontSize * 1.5 / 72;
+  const presentedToY = 3.5;
 
   doc.text(presentedToText, presentedToX, presentedToY);
 
@@ -108,7 +110,7 @@ function addText(doc, name, dimensions, fontSize) {
   const nameFontSize = fontSize * 3;
   doc.setFontSize(nameFontSize);
   const nameX = calculateXPosition(doc, name, dimensions.width);
-  const nameY = dimensions.height / 2;
+  const nameY = presentedToY + 0.5;
 
   doc.text(name, nameX, nameY);
 
@@ -117,7 +119,7 @@ function addText(doc, name, dimensions, fontSize) {
   const completionText = `For completion of ${minutes} minutes of education:`;
   doc.setFontSize(fontSize);
   const completionX = calculateXPosition(doc, completionText, dimensions.width);
-  const completionY = dimensions.height / 2 + fontSize * 1.5 / 72;
+  const completionY = nameY + fontSize * 3.5 / 72;
 
   doc.text(completionText, completionX, completionY);
 
@@ -126,10 +128,11 @@ function addText(doc, name, dimensions, fontSize) {
   const formattedDate = today.toISOString().split("T")[0];
   const dateText = `Date: ${formattedDate}`;
   const dateX = calculateXPosition(doc, dateText, dimensions.width);
-  const dateY = completionY + fontSize / 72;
+  const dateY = completionY + fontSize / 72 + 0.1;
 
   doc.text(dateText, dateX, dateY);
 }
+
 
 
 function calculateXPosition(doc, text, width) {
