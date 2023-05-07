@@ -18,7 +18,7 @@ async function onFormSubmit(e) {
     const img = await loadImage(CONFIG.backgroundImagePath);
     const backgroundImage = await fetchImageAsBase64(CONFIG.backgroundImagePath);
     const dimensions = calculateDimensions(img, 72);
-    generatePDF(name, email, backgroundImage, dimensions, img);
+    generatePDF(name, backgroundImage, dimensions, img);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -40,11 +40,11 @@ async function fetchImageAsBase64(url) {
 }
 
 // PDF generation functions
-async function generatePDF(name, email, backgroundImage, dimensions, img) {
+async function generatePDF(name, backgroundImage, dimensions, img) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
   const fontSize = 16;
-  addText(doc, name, email, dimensions, fontSize);
+  addText(doc, name, dimensions, fontSize);
   savePDF(doc);
 }
 
@@ -94,22 +94,41 @@ function addBackgroundImage(doc, backgroundImage, dimensions, img) {
   doc.addImage(backgroundImage, 'PNG', backgroundX, backgroundY, scaledWidth, scaledHeight);
 }
 
-function addText(doc, name, email, dimensions, fontSize) {
+function addText(doc, name, dimensions, fontSize) {
+  // Presented to
+  const presentedToText = "Presented to";
+  const presentedToFontSize = fontSize * 0.7;
+  doc.setFontSize(presentedToFontSize);
+  const presentedToX = calculateXPosition(doc, presentedToText, dimensions.width);
+  const presentedToY = dimensions.height / 2 - fontSize * 1.5 / 72;
+
+  doc.text(presentedToText, presentedToX, presentedToY);
+
+  // Name
+  const nameFontSize = fontSize * 3;
+  doc.setFontSize(nameFontSize);
+  const nameX = calculateXPosition(doc, name, dimensions.width);
+  const nameY = dimensions.height / 2;
+
+  doc.text(name, nameX, nameY);
+
+  // For completion of
+  const minutes = "5:59";
+  const completionText = `For completion of ${minutes} minutes of education:`;
   doc.setFontSize(fontSize);
+  const completionX = calculateXPosition(doc, completionText, dimensions.width);
+  const completionY = dimensions.height / 2 + fontSize * 1.5 / 72;
 
-  const nameText = `Name: ${name}`;
-  const emailText = `Email: ${email}`;
+  doc.text(completionText, completionX, completionY);
 
-  const nameX = calculateXPosition(doc, nameText, dimensions.width);
-  const emailX = calculateXPosition(doc, emailText, dimensions.width);
+  // Date
+  const today = new Date();
+  const formattedDate = today.toISOString().split("T")[0];
+  const dateText = `Date: ${formattedDate}`;
+  const dateX = calculateXPosition(doc, dateText, dimensions.width);
+  const dateY = completionY + fontSize / 72;
 
-  const centerY = dimensions.height / 2;
-
-  const nameY = centerY - fontSize / 72;
-  const emailY = centerY + fontSize / 72;
-
-  doc.text(nameText, nameX, nameY);
-  doc.text(emailText, emailX, emailY);
+  doc.text(dateText, dateX, dateY);
 }
 
 
