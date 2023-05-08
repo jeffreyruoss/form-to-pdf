@@ -13,12 +13,13 @@ async function onFormSubmit(e) {
 
   const name = getValueById('name');
   const email = getValueById('email');
+  const additionalText = getValueById('additional-text');
 
   try {
     const img = await loadImage(CONFIG.backgroundImagePath);
     const backgroundImage = await fetchImageAsBase64(CONFIG.backgroundImagePath);
     const dimensions = calculateDimensions(img, 72);
-    generatePDF(name, backgroundImage, dimensions, img);
+    generatePDF(name, additionalText, backgroundImage, dimensions, img);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -40,12 +41,12 @@ async function fetchImageAsBase64(url) {
 }
 
 // PDF generation functions
-async function generatePDF(name, backgroundImage, dimensions, img) {
+async function generatePDF(name, additionalText, backgroundImage, dimensions, img) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
   const fontSize = 12;
   const textColor = '#58595B';
-  addText(doc, name, dimensions, fontSize, textColor);
+  addText(doc, name, additionalText, dimensions, fontSize, textColor);
   savePDF(doc);
 }
 
@@ -95,7 +96,7 @@ function addBackgroundImage(doc, backgroundImage, dimensions, img) {
   doc.addImage(backgroundImage, 'PNG', backgroundX, backgroundY, scaledWidth, scaledHeight);
 }
 
-function addText(doc, name, dimensions, fontSize, textColor) {
+function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   // Presented to
   const presentedToText = "Presented to";
   const presentedToFontSize = fontSize * 1.2;
@@ -123,17 +124,21 @@ function addText(doc, name, dimensions, fontSize, textColor) {
 
   doc.text(completionText, completionX, completionY);
 
+  // Additional text
+  const additionalTextX = calculateXPosition(doc, additionalText, dimensions.width);
+  const additionalTextY = completionY + fontSize / 72 + 0.1;
+
+  doc.text(additionalText, additionalTextX, additionalTextY);
+
   // Date
   const today = new Date();
   const formattedDate = today.toISOString().split("T")[0];
   const dateText = `Date: ${formattedDate}`;
   const dateX = calculateXPosition(doc, dateText, dimensions.width);
-  const dateY = completionY + fontSize / 72 + 0.1;
+  const dateY = dimensions.height - 0.5;
 
   doc.text(dateText, dateX, dateY);
 }
-
-
 
 function calculateXPosition(doc, text, width) {
   return (width - doc.getTextWidth(text)) / 2;
