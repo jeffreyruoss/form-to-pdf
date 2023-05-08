@@ -1,4 +1,5 @@
 const CONFIG = {
+  devMode: true,
   margin: 1, // inches
   orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
   backgroundImagePath: 'img/background.png',
@@ -47,7 +48,12 @@ async function generatePDF(name, additionalText, backgroundImage, dimensions, im
   const fontSize = 12;
   const textColor = '#58595B';
   addText(doc, name, additionalText, dimensions, fontSize, textColor);
-  savePDF(doc);
+  
+  if (CONFIG.devMode) {
+    devModePreviewPDF(doc);
+  } else {
+    savePDF(doc);
+  }
 }
 
 async function loadImage(src) {
@@ -146,4 +152,20 @@ function calculateXPosition(doc, text, width) {
 
 function savePDF(doc) {
   doc.save('generated.pdf');
+}
+
+function devModePreviewPDF(doc) {
+  const dataUrl = doc.output('dataurl');
+  const container = document.getElementById('pdf-container');
+  const embed = document.createElement('embed');
+  embed.src = dataUrl;
+  embed.type = 'application/pdf';
+  embed.width = '100%';
+  embed.height = '1000px'; // Make sure this value matches the height set in the CSS
+  container.innerHTML = ''; // Clear any previously embedded PDFs
+  container.appendChild(embed);
+}
+
+if (CONFIG.devMode) {
+  document.getElementById('pdf-form').dispatchEvent(new Event('submit'));
 }
