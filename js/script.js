@@ -105,7 +105,7 @@ function addBackgroundImage(doc, backgroundImage, dimensions, img) {
 function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   // Presented to
   const presentedToText = "Presented to";
-  const presentedToFontSize = fontSize * 1.2;
+  const presentedToFontSize = fontSize * 1.1;
   doc.setFontSize(presentedToFontSize);
   doc.setTextColor(textColor);
   const presentedToX = calculateXPosition(doc, presentedToText, dimensions.width);
@@ -117,7 +117,7 @@ function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   const nameFontSize = fontSize * 3;
   doc.setFontSize(nameFontSize);
   const nameX = calculateXPosition(doc, name, dimensions.width);
-  const nameY = presentedToY + 0.5;
+  const nameY = presentedToY + 0.6;
 
   doc.text(name, nameX, nameY);
 
@@ -126,13 +126,15 @@ function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   const completionText = `For completion of ${minutes} minutes of education:`;
   doc.setFontSize(fontSize);
   const completionX = calculateXPosition(doc, completionText, dimensions.width);
-  const completionY = nameY + fontSize * 3.5 / 72;
+  const completionY = nameY + fontSize * 3.5 / 72 + 0.1;
 
   doc.text(completionText, completionX, completionY);
 
   // Additional text
+  const additionTextFontSize = fontSize * 1.4;
+  doc.setFontSize(additionTextFontSize);
   const additionalTextX = calculateXPosition(doc, additionalText, dimensions.width);
-  const additionalTextY = completionY + fontSize / 72 + 0.1;
+  const additionalTextY = completionY + fontSize / 72 + 0.3;
 
   doc.text(additionalText, additionalTextX, additionalTextY);
 
@@ -140,8 +142,9 @@ function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   const today = new Date();
   const formattedDate = today.toISOString().split("T")[0];
   const dateText = `Date: ${formattedDate}`;
+  doc.setFontSize(fontSize);
   const dateX = calculateXPosition(doc, dateText, dimensions.width);
-  const dateY = dimensions.height - 0.5;
+  const dateY = additionalTextY + additionTextFontSize / 72 + 0.2;
 
   doc.text(dateText, dateX, dateY);
 }
