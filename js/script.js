@@ -4,6 +4,7 @@ const CONFIG = {
   orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
   backgroundImagePath: 'img/background.png',
   signatureImagePath: 'img/signature.png',
+  signatureText: 'John Hancock, CEO',
 }
 
 const jsPDF = window.jspdf.jsPDF;
@@ -160,7 +161,13 @@ function addSignatureImage(doc, signatureImg, dimensions) {
   const signatureX = (dimensions.width - signatureWidth) / 2;
   const signatureY = 6;
 
-  doc.addImage(signatureImg, 'JPEG', signatureX, signatureY, signatureWidth, signatureHeight);
+  doc.addImage(signatureImg, 'PNG', signatureX, signatureY, signatureWidth, signatureHeight);
+
+  const signatureTextFontSize = 12;
+  doc.setFontSize(signatureTextFontSize);
+  const signatureTextX = calculateXPosition(doc, CONFIG.signatureText, dimensions.width);
+  const signatureTextY = signatureY + signatureHeight + signatureTextFontSize / 72;
+  doc.text(CONFIG.signatureText, signatureTextX, signatureTextY);
 }
 
 function calculateXPosition(doc, text, width) {
