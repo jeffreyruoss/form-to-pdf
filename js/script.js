@@ -3,6 +3,7 @@ const CONFIG = {
   margin: 1, // inches
   orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
   backgroundImagePath: 'img/background.png',
+  signatureImagePath: 'img/signature.png',
 }
 
 const jsPDF = window.jspdf.jsPDF;
@@ -18,9 +19,10 @@ async function onFormSubmit(e) {
 
   try {
     const img = await loadImage(CONFIG.backgroundImagePath);
+    const signatureImg = await loadImage(CONFIG.signatureImagePath);
     const backgroundImage = await fetchImageAsBase64(CONFIG.backgroundImagePath);
     const dimensions = calculateDimensions(img, 72);
-    generatePDF(name, additionalText, backgroundImage, dimensions, img);
+    generatePDF(name, additionalText, backgroundImage, dimensions, img, signatureImg);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -42,12 +44,13 @@ async function fetchImageAsBase64(url) {
 }
 
 // PDF generation functions
-async function generatePDF(name, additionalText, backgroundImage, dimensions, img) {
+async function generatePDF(name, additionalText, backgroundImage, dimensions, img, signatureImg) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
   const fontSize = 12;
   const textColor = '#58595B';
   addText(doc, name, additionalText, dimensions, fontSize, textColor);
+  addSignatureImage(doc, signatureImg, dimensions);
   
   if (CONFIG.devMode) {
     devModePreviewPDF(doc);
@@ -147,6 +150,17 @@ function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
   const dateY = additionalTextY + additionTextFontSize / 72 + 0.2;
 
   doc.text(dateText, dateX, dateY);
+}
+
+function addSignatureImage(doc, signatureImg, dimensions) {
+  const signatureWidth = 2.5;
+  const signatureAspectRatio = signatureImg.width / signatureImg.height;
+  const signatureHeight = signatureWidth / signatureAspectRatio;
+
+  const signatureX = (dimensions.width - signatureWidth) / 2;
+  const signatureY = 6;
+
+  doc.addImage(signatureImg, 'JPEG', signatureX, signatureY, signatureWidth, signatureHeight);
 }
 
 function calculateXPosition(doc, text, width) {
