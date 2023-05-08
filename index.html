@@ -15,10 +15,13 @@
         <input type="email" id="email" name="email" value="jeffreyruoss@gmail.com" required>
         <br>
 
-        <input type="hidden" id="additional-text" name="additionalText" value="This is some additional text to be added to the pdf.">
+        <input type="hidden" id="additional-text" name="additionalText" value="This is the additionalText hidden field text">
 
         <button type="submit">Generate PDF</button>
     </form>
+
+    <div id="pdf-container" style="height: 1000px;"></div>
+    
     <script src="js/jspdf.js"></script>
     <script src="js/script.js"></script>
 </body>
