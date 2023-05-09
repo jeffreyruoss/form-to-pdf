@@ -1,5 +1,5 @@
 const CONFIG = {
-  devMode: true,
+  devMode: false, // true will show a preview embedded PDF under the form
   margin: 1, // inches
   orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
   backgroundImagePath: 'img/background.png',
@@ -44,7 +44,6 @@ async function fetchImageAsBase64(url) {
   });
 }
 
-// PDF generation functions
 async function generatePDF(name, additionalText, backgroundImage, dimensions, img, signatureImg) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
@@ -185,8 +184,8 @@ function devModePreviewPDF(doc) {
   embed.src = dataUrl;
   embed.type = 'application/pdf';
   embed.width = '100%';
-  embed.height = '1000px'; // Make sure this value matches the height set in the CSS
-  container.innerHTML = ''; // Clear any previously embedded PDFs
+  embed.height = '1000px'; // Make sure this value matches the height set in inline CSS
+  container.innerHTML = '';
   container.appendChild(embed);
 }
 
