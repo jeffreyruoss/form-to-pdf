@@ -1,5 +1,5 @@
 const CONFIG = {
-  devMode: false, // true will show a preview embedded PDF under the form
+  devMode: true, // true will show a preview embedded PDF under the form
   margin: 1, // inches
   orientation: 'landscape', // 'portrait' or 'landscape' (8.5" x 11")
   backgroundImagePath: 'img/background.png',
@@ -16,6 +16,7 @@ async function onFormSubmit(e) {
 
   const name = getValueById('name');
   const email = getValueById('email');
+  const duration = calculateHoursMinutes(getValueById('duration'));
   const additionalText = getValueById('additional-text');
 
   try {
@@ -23,7 +24,7 @@ async function onFormSubmit(e) {
     const signatureImg = await loadImage(CONFIG.signatureImagePath);
     const backgroundImage = await fetchImageAsBase64(CONFIG.backgroundImagePath);
     const dimensions = calculateDimensions(img, 72);
-    generatePDF(name, additionalText, backgroundImage, dimensions, img, signatureImg);
+    generatePDF(name, duration, additionalText, backgroundImage, dimensions, img, signatureImg);
   } catch (error) {
     console.error('Error:', error);
   }
@@ -44,12 +45,12 @@ async function fetchImageAsBase64(url) {
   });
 }
 
-async function generatePDF(name, additionalText, backgroundImage, dimensions, img, signatureImg) {
+async function generatePDF(name, duration, additionalText, backgroundImage, dimensions, img, signatureImg) {
   const doc = createPDF(dimensions);
   addBackgroundImage(doc, backgroundImage, dimensions, img);
   const fontSize = 12;
   const textColor = '#58595B';
-  addText(doc, name, additionalText, dimensions, fontSize, textColor);
+  addText(doc, name, duration, additionalText, dimensions, fontSize, textColor);
   addSignatureImage(doc, signatureImg, dimensions);
   
   if (CONFIG.devMode) {
@@ -83,6 +84,19 @@ function calculateDimensions(img, dpi) {
     height: height,
   };
 }
+
+function calculateHoursMinutes(duration) {
+  const hours = Math.floor(duration / 60);
+  const minutes = duration % 60;
+  
+  let hourText = '';
+  if (hours > 0) {
+    hourText = `${hours} hour${hours > 1 ? 's' : ''} and `;
+  }
+
+  return `${hourText}${minutes} minute${minutes > 1 || minutes === 0 ? 's' : ''}`;
+}
+
 function createPDF(dimensions) {
   return new jsPDF({
     orientation: CONFIG.orientation,
@@ -105,7 +119,7 @@ function addBackgroundImage(doc, backgroundImage, dimensions, img) {
   doc.addImage(backgroundImage, 'PNG', backgroundX, backgroundY, scaledWidth, scaledHeight);
 }
 
-function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
+function addText(doc, name, duration, additionalText, dimensions, fontSize, textColor) {
   // Presented to
   const presentedToText = "Presented to";
   const presentedToFontSize = fontSize * 1.1;
@@ -126,7 +140,7 @@ function addText(doc, name, additionalText, dimensions, fontSize, textColor) {
 
   // For completion of
   const minutes = "5:59";
-  const completionText = `For completion of ${minutes} minutes of education:`;
+  const completionText = `For completion of ${duration} of education:`;
   doc.setFontSize(fontSize);
   const completionX = calculateXPosition(doc, completionText, dimensions.width);
   const completionY = nameY + fontSize * 3.5 / 72 + 0.1;
